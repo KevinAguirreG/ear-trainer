@@ -5,6 +5,8 @@ import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
+  // Rutas relativas: el build funciona en la subruta de GitHub Pages y en cualquier hosting estático.
+  base: './',
   // `npm run dev:https`: certificado local para probar el micrófono desde el celular.
   plugins: [react(), tailwindcss(), mode === 'https' && basicSsl()],
   test: {

@@ -1,7 +1,8 @@
 import { useStore } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { createStore } from 'zustand/vanilla'
-import { DEFAULT_HOLD_OPTIONS } from '../exercise/holdEvaluator'
+import { DEFAULT_HOLD_OPTIONS, type AttemptSummary } from '../exercise/holdEvaluator'
+import { EMPTY_STATS, recordAttempt, sanitizeStats, type Stats } from '../exercise/stats'
 import type { Notation, OctaveMode } from '../music/notes'
 import { DEFAULT_VOICE, isValidRange, VOICE_PRESETS, type NoteRange, type VoiceType } from '../music/voiceRanges'
 
@@ -24,12 +25,15 @@ export interface PersistedState {
   range: NoteRange
   rangeSource: RangeSource
   settings: Settings
+  stats: Stats
 }
 
 export interface AppState extends PersistedState {
   setPreset: (voice: VoiceType) => void
   setRange: (range: NoteRange, source: 'calibrated' | 'manual') => void
   updateSettings: (patch: Partial<Settings>) => void
+  recordAttempt: (targetMidi: number, summary: AttemptSummary) => void
+  resetStats: () => void
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -45,6 +49,7 @@ export const DEFAULT_STATE: PersistedState = {
   range: VOICE_PRESETS[DEFAULT_VOICE].range,
   rangeSource: DEFAULT_VOICE,
   settings: DEFAULT_SETTINGS,
+  stats: EMPTY_STATS,
 }
 
 function pick<T>(value: unknown, allowed: readonly T[], fallback: T): T {
@@ -73,6 +78,7 @@ export function sanitizePersisted(raw: unknown): PersistedState {
       volume:
         typeof s.volume === 'number' && s.volume >= 0 && s.volume <= 1 ? s.volume : DEFAULT_SETTINGS.volume,
     },
+    stats: sanitizeStats(data.stats),
   }
 }
 
@@ -90,12 +96,14 @@ export function createAppStore(getStorage: () => StateStorage = () => window.loc
         },
         updateSettings: (patch) =>
           set((state) => ({ settings: sanitizePersisted({ ...state, settings: { ...state.settings, ...patch } }).settings })),
+        recordAttempt: (targetMidi, summary) => set((state) => ({ stats: recordAttempt(state.stats, targetMidi, summary) })),
+        resetStats: () => set({ stats: EMPTY_STATS }),
       }),
       {
         name: STORAGE_KEY,
         version: 1,
         storage: createJSONStorage(getStorage),
-        partialize: ({ range, rangeSource, settings }): PersistedState => ({ range, rangeSource, settings }),
+        partialize: ({ range, rangeSource, settings, stats }): PersistedState => ({ range, rangeSource, settings, stats }),
         merge: (persisted, current) => ({ ...current, ...sanitizePersisted(persisted) }),
       },
     ),

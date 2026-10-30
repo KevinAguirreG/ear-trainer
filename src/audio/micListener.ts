@@ -31,6 +31,8 @@ function toMicError(e: unknown): MicError {
     case 'NotFoundError':
     case 'OverconstrainedError':
       return new MicError('no-device', 'No se encontró ningún micrófono. Conecta uno y vuelve a intentarlo.')
+    case 'NotSupportedError':
+      return new MicError('unsupported', 'Este navegador no permite usar el micrófono. Prueba con Chrome o Safari actualizados.')
     case 'NotReadableError':
     case 'AbortError':
       return new MicError('busy', 'El micrófono está en uso por otra aplicación. Ciérrala y vuelve a intentarlo.')

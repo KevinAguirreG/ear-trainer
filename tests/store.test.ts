@@ -73,6 +73,31 @@ describe('createAppStore', () => {
   })
 })
 
+describe('estadísticas en el store', () => {
+  const hit = { success: true, frames: 60, meanCents: 5, meanAbsCents: 8 }
+
+  it('registra intentos, sobreviven a recargar y se pueden reiniciar', () => {
+    const { storage } = memoryStorage()
+    const first = createAppStore(() => storage)
+    first.getState().recordAttempt(45, hit)
+    first.getState().recordAttempt(45, { ...hit, success: false })
+    const reloaded = createAppStore(() => storage)
+    expect(reloaded.getState().stats).toMatchObject({ attempts: 2, hits: 1, streak: 0, bestStreak: 1 })
+    expect(reloaded.getState().stats.perNote[45].attempts).toBe(2)
+    reloaded.getState().resetStats()
+    expect(createAppStore(() => storage).getState().stats.attempts).toBe(0)
+  })
+
+  it('una versión guardada sin estadísticas carga las demás cosas', () => {
+    const { storage } = memoryStorage({
+      [STORAGE_KEY]: JSON.stringify({ state: { range: { low: 44, high: 70 }, rangeSource: 'manual' }, version: 1 }),
+    })
+    const s = createAppStore(() => storage).getState()
+    expect(s.range).toEqual({ low: 44, high: 70 })
+    expect(s.stats.attempts).toBe(0)
+  })
+})
+
 describe('sanitizePersisted', () => {
   it('cae a valores por defecto campo por campo', () => {
     const s = sanitizePersisted({

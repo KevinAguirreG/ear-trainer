@@ -26,7 +26,7 @@ export interface ExercisePanelProps {
   octaveMode: OctaveMode
   notation: Notation
   volume: number
-  /** Se llama al terminar un intento: acierto, o se pidió otra nota sin acertar. */
+  /** Se llama al terminar un intento: acierto, o se pidió otra nota tras haber cantado sin acertar. */
   onAttemptEnd?: (targetMidi: number, summary: AttemptSummary) => void
 }
 
@@ -100,8 +100,10 @@ export function ExercisePanel({ range, tolerance, holdMs, octaveMode, notation, 
 
   function newNote() {
     const previous = targetRef.current
-    if (previous !== null && evaluator.current && (phaseRef.current === 'listening' || phaseRef.current === 'playing')) {
-      onAttemptEnd?.(previous, evaluator.current.summary())
+    // Saltar una nota sin haber cantado nada (o mientras suena la referencia) no cuenta como intento.
+    const summary = evaluator.current?.summary()
+    if (previous !== null && summary && phaseRef.current === 'listening' && summary.frames > 0) {
+      onAttemptEnd?.(previous, summary)
     }
     const next = randomNoteInRange(range, previous)
     setTarget(next)
@@ -142,7 +144,7 @@ export function ExercisePanel({ range, tolerance, holdMs, octaveMode, notation, 
           {phase === 'free' || target === null ? '—' : noteName(target, notation)}
         </p>
         <p className={`mt-1 h-6 ${phase === 'success' ? 'font-semibold text-emerald-600' : 'text-slate-600'}`}>
-          {STATUS_TEXT[phase]}
+          {phase === 'idle' && pitch.error && target !== null ? 'Sin micrófono: puedes escuchar, pero no se evalúa.' : STATUS_TEXT[phase]}
         </p>
       </div>
 

@@ -31,13 +31,14 @@ src/
 ├── audio/       # AudioContext singleton, reproducción de referencia, micrófono
 ├── music/       # notes.ts (MIDI <-> Hz <-> nombre, cents), voiceRanges.ts, noteGenerator.ts
 ├── pitch/       # wrapper de pitchy (RMS + claridad), mediana móvil
-├── exercise/    # holdEvaluator.ts (acierto sostenido), calibration.ts (extremos del rango)
+├── exercise/    # holdEvaluator.ts (acierto sostenido), calibration.ts (extremos del rango), stats.ts
 ├── store/       # Zustand + persistencia en localStorage
 ├── hooks/       # usePitch: expone el pitch suavizado a la UI
 ├── components/  # TunerNeedle, ExercisePanel, RangeSetup, SettingsPanel, StatsPanel
 ├── App.tsx
 └── main.tsx
 tests/           # Vitest: *.test.ts, uno por módulo puro
+.github/workflows/deploy.yml  # lint + pruebas + build y deploy a GitHub Pages en cada push a main
 docs/SPEC.md     # especificación del proyecto
 ```
 
@@ -52,4 +53,5 @@ docs/SPEC.md     # especificación del proyecto
   como parámetros para que las pruebas sean deterministas.
 - Un solo `AudioContext` compartido, creado tras un gesto del usuario (requisito de iOS/Safari);
   llamar `resume()` si está en `suspended`.
+- Todo lo que se lee de `localStorage` pasa por un `sanitize*` que valida campo por campo.
 - UI y mensajes en español.
