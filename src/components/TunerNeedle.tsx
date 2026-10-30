@@ -1,12 +1,23 @@
-import { centsFromTarget, nearestMidi, noteName, tuningZone, type Notation, type TuningZone } from '../music/notes'
+import {
+  centsFromTarget,
+  nearestMidi,
+  noteName,
+  tuningZone,
+  type Notation,
+  type OctaveMode,
+  type TuningZone,
+} from '../music/notes'
 
 interface TunerNeedleProps {
   /** Frecuencia detectada, o null en silencio. */
   freq: number | null
   /** Nota objetivo en MIDI. Sin objetivo, se mide contra la nota más cercana. */
-  targetMidi?: number
+  targetMidi?: number | null
+  octaveMode?: OctaveMode
   tolerance?: number
   notation?: Notation
+  /** Progreso del sostenido, 0–1. Sin valor no se muestra la barra. */
+  holdProgress?: number
 }
 
 const RANGE = 50
@@ -17,10 +28,17 @@ const ZONE_COLORS: Record<TuningZone, { bar: string; text: string }> = {
   far: { bar: 'bg-red-500', text: 'text-red-600' },
 }
 
-export function TunerNeedle({ freq, targetMidi, tolerance = 25, notation = 'latin' }: TunerNeedleProps) {
+export function TunerNeedle({
+  freq,
+  targetMidi = null,
+  octaveMode = 'strict',
+  tolerance = 25,
+  notation = 'latin',
+  holdProgress,
+}: TunerNeedleProps) {
   const sungMidi = freq === null ? null : nearestMidi(freq)
   const reference = targetMidi ?? sungMidi
-  const cents = freq === null || reference === null ? null : centsFromTarget(freq, reference, 'strict')
+  const cents = freq === null || reference === null ? null : centsFromTarget(freq, reference, octaveMode)
   const zone = cents === null ? null : tuningZone(cents, tolerance)
   const clamped = cents === null ? 0 : Math.max(-RANGE, Math.min(RANGE, cents))
   const position = ((clamped + RANGE) / (2 * RANGE)) * 100
@@ -59,16 +77,35 @@ export function TunerNeedle({ freq, targetMidi, tolerance = 25, notation = 'lati
         {cents === null
           ? ''
           : zone === 'in'
-            ? `✓ Afinado (${formatCents(cents)})`
+            ? `✓ Afinado (${formatDeviation(cents)})`
             : cents < 0
-              ? `↑ Sube (${formatCents(cents)})`
-              : `↓ Baja (${formatCents(cents)})`}
+              ? `↑ Sube (${formatDeviation(cents)})`
+              : `↓ Baja (${formatDeviation(cents)})`}
       </p>
+
+      {holdProgress !== undefined && (
+        <div
+          className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"
+          role="progressbar"
+          aria-label="Tiempo sostenido"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(holdProgress * 100)}
+        >
+          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${holdProgress * 100}%` }} />
+        </div>
+      )}
     </div>
   )
 }
 
-function formatCents(cents: number): string {
+/** Cents si la desviación es menor a un semitono; semitonos si es mayor. */
+function formatDeviation(cents: number): string {
+  if (Math.abs(cents) >= 100) {
+    const semitones = Math.round(cents / 100)
+    const unit = Math.abs(semitones) === 1 ? 'semitono' : 'semitonos'
+    return `${semitones > 0 ? '+' : ''}${semitones} ${unit}`
+  }
   const rounded = Math.round(cents)
   return `${rounded > 0 ? '+' : ''}${rounded} cents`
 }

@@ -116,3 +116,39 @@ export function createReferencePlayer(getContext: () => BaseAudioContext): Refer
     stop: () => current?.stop(),
   }
 }
+
+/**
+ * Sonido de confirmación al acertar: dos notas agudas cortas (Do6 → Sol6) con onda
+ * senoidal, para que se distinga de la referencia.
+ */
+export function playChime(ctx: BaseAudioContext, volume = 0.3): Promise<void> {
+  const notes = [84, 91]
+  const step = 0.09
+  const decay = 0.35
+  const start = ctx.currentTime + START_OFFSET
+  const peak = Math.min(Math.max(volume, 0), 1)
+  let ended: Promise<void> = Promise.resolve()
+
+  notes.forEach((midi, i) => {
+    const t = start + i * step
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.value = midiToFreq(midi)
+    const gain = ctx.createGain()
+    gain.gain.setValueAtTime(0, t)
+    gain.gain.linearRampToValueAtTime(peak, t + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + decay)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(t)
+    osc.stop(t + decay)
+    ended = new Promise((resolve) => {
+      osc.onended = () => {
+        osc.disconnect()
+        gain.disconnect()
+        resolve()
+      }
+    })
+  })
+  return ended
+}
