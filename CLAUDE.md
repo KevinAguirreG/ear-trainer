@@ -18,6 +18,7 @@ React 18 + TypeScript + Vite, Tailwind CSS v4 (`@tailwindcss/vite`), Zustand, We
 ## Comandos
 
 - `npm run dev` — servidor de desarrollo (el micrófono requiere `localhost` o HTTPS)
+- `npm run dev:https` — servidor en la red local con certificado autofirmado, para probar en el celular
 - `npm run build` — typecheck (`tsc -b`) + build estático en `dist/`
 - `npm test` — pruebas unitarias (Vitest, una sola corrida)
 - `npm run test:watch` — Vitest en modo watch

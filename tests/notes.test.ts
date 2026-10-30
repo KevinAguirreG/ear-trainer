@@ -7,6 +7,7 @@ import {
   nearestMidi,
   noteName,
   parseNoteName,
+  tuningZone,
 } from '../src/music/notes'
 
 describe('midiToFreq / freqToMidi', () => {
@@ -81,5 +82,15 @@ describe('cents', () => {
     expect(centsFromTarget(445, 45, 'pitchClass')).toBeCloseTo(19.56, 1)
     // Sol#3 cantado contra La2: un semitono abajo de La3
     expect(centsFromTarget(midiToFreq(56), 45, 'pitchClass')).toBeCloseTo(-100, 6)
+  })
+})
+
+describe('tuningZone', () => {
+  it('verde dentro de tolerancia, amarillo hasta el doble, rojo más allá', () => {
+    expect(tuningZone(25, 25)).toBe('in')
+    expect(tuningZone(-10, 25)).toBe('in')
+    expect(tuningZone(-40, 25)).toBe('near')
+    expect(tuningZone(50, 25)).toBe('near')
+    expect(tuningZone(51, 25)).toBe('far')
   })
 })

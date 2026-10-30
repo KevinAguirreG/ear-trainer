@@ -73,3 +73,13 @@ export function parseNoteName(name: string): number | null {
   if (index === -1) return null
   return (Number(octave) + 1) * 12 + index
 }
+
+/** Qué tan afinada está una lectura: dentro de tolerancia, cerca (hasta el doble) o lejos. */
+export type TuningZone = 'in' | 'near' | 'far'
+
+export function tuningZone(cents: number, tolerance: number): TuningZone {
+  const abs = Math.abs(cents)
+  if (abs <= tolerance) return 'in'
+  if (abs <= tolerance * 2) return 'near'
+  return 'far'
+}
