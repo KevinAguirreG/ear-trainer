@@ -24,5 +24,5 @@ que el micrófono no capte la nota de referencia.
 - [x] Fase 2 — Reproducción de referencia
 - [x] Fase 3 — Micrófono y afinador libre
 - [x] Fase 4 — Ejercicio de nota suelta
-- [ ] Fase 5 — Rango vocal y ajustes
+- [x] Fase 5 — Rango vocal y ajustes
 - [ ] Fase 6 — Estadísticas y pulido

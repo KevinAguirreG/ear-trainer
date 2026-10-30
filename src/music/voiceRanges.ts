@@ -33,3 +33,31 @@ export function notesInRange(range: NoteRange): number[] {
   for (let m = range.low; m <= range.high; m++) notes.push(m)
   return notes
 }
+
+/** Extremos del selector manual de rango: Do2 – Mi6. */
+export const SELECTABLE_RANGE: NoteRange = { low: 36, high: 88 }
+
+/** Rango mínimo aceptado tras calibrar o ajustar a mano, en semitonos (una cuarta justa). */
+export const MIN_RANGE_SEMITONES = 5
+
+export function isValidRange(range: NoteRange): boolean {
+  return (
+    Number.isInteger(range.low) &&
+    Number.isInteger(range.high) &&
+    range.low >= SELECTABLE_RANGE.low &&
+    range.high <= SELECTABLE_RANGE.high &&
+    range.high - range.low >= MIN_RANGE_SEMITONES
+  )
+}
+
+/**
+ * Rango cómodo a partir de los extremos detectados al calibrar: recorta un semitono
+ * por lado y lo limita a lo seleccionable. Acepta los extremos en cualquier orden.
+ * Devuelve null si queda demasiado estrecho (probablemente una mala lectura).
+ */
+export function rangeFromCalibration(lowest: number, highest: number): NoteRange | null {
+  const low = Math.max(Math.min(lowest, highest) + 1, SELECTABLE_RANGE.low)
+  const high = Math.min(Math.max(lowest, highest) - 1, SELECTABLE_RANGE.high)
+  const range = { low, high }
+  return isValidRange(range) ? range : null
+}

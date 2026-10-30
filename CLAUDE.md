@@ -31,7 +31,7 @@ src/
 ├── audio/       # AudioContext singleton, reproducción de referencia, micrófono
 ├── music/       # notes.ts (MIDI <-> Hz <-> nombre, cents), voiceRanges.ts, noteGenerator.ts
 ├── pitch/       # wrapper de pitchy (RMS + claridad), mediana móvil
-├── exercise/    # holdEvaluator.ts: lógica de acierto sostenido
+├── exercise/    # holdEvaluator.ts (acierto sostenido), calibration.ts (extremos del rango)
 ├── store/       # Zustand + persistencia en localStorage
 ├── hooks/       # usePitch: expone el pitch suavizado a la UI
 ├── components/  # TunerNeedle, ExercisePanel, RangeSetup, SettingsPanel, StatsPanel
